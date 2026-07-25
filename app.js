@@ -37,47 +37,54 @@ const players = [
 
 let inputBuffer = "";
 
-// Tab Navigation
-document.querySelectorAll(".tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-    
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.tab).classList.add("active");
-  });
-});
-
 // Setup Modal
 const setupModal = document.getElementById("setup-modal");
-document.getElementById("setup-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  team1.name = document.getElementById("input-t1-name").value.trim() || MY_TEAM_NAME;
-  team2.name = document.getElementById("input-t2-name").value.trim() || "Opponent";
-  players[0].name = document.getElementById("input-p1-name").value.trim() || "Player 1";
-  players[1].name = document.getElementById("input-p2-name").value.trim() || "Opponent 1";
+document.getElementById("btn-save-setup").addEventListener("click", () => {
+  team1.name = document.getElementById("setup-t0-name").value.trim() || MY_TEAM_NAME;
+  team2.name = document.getElementById("setup-t1-name").value.trim() || "Opponents";
+  players[0].name = document.getElementById("setup-p0-name").value.trim() || "Player 1";
+  players[1].name = document.getElementById("setup-p1-name").value.trim() || "Opponent 1";
+
+  // Reset stats
+  players.forEach(p => {
+    p.legs = 0;
+    p.points = 0;
+    p.darts = 0;
+    p.tonPlus = 0;
+    p.tons180 = 0;
+    p.highCheckout = 0;
+  });
+
+  // Hide modal
+  document.getElementById("setup-modal").classList.add("hidden");
+
+  // Setup Modal
+const setupModal = document.getElementById("setup-modal");
+
+document.getElementById("btn-save-setup").addEventListener("click", () => {
+  team1.name = document.getElementById("setup-t0-name").value.trim() || MY_TEAM_NAME;
+  team2.name = document.getElementById("setup-t1-name").value.trim() || "Opponents";
+  players[0].name = document.getElementById("setup-p0-name").value.trim() || "Player 1";
+  players[1].name = document.getElementById("setup-p1-name").value.trim() || "Opponent 1";
 
   // Reset player stats for new match session
   players.forEach(p => {
-    p.legs = 0; p.points = 0; p.darts = 0; 
-    p.tonPlus = 0; p.tons180 = 0; p.highCheckout = 0;
+    p.legs = 0;
+    p.points = 0;
+    p.darts = 0;
+    p.tonPlus = 0;
+    p.tons180 = 0;
+    p.highCheckout = 0;
   });
 
   setupModal.classList.add("hidden");
   updateUI();
 });
 
-document.getElementById("btn-new-match").addEventListener("click", () => setupModal.classList.remove("hidden"));
-
-// Keypad Controls
-document.querySelectorAll(".btn-num").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (inputBuffer.length < 3) {
-      inputBuffer += btn.dataset.val;
-      document.getElementById("input-buffer").innerText = inputBuffer;
-    }
-  });
+document.getElementById("btn-new-match").addEventListener("click", () => {
+  setupModal.classList.remove("hidden");
 });
+
 
 document.getElementById("btn-clear").addEventListener("click", () => {
   inputBuffer = "";
@@ -138,27 +145,37 @@ function processTurn(pts) {
 }
 
 function updateUI() {
-  document.getElementById("t1-name-display").innerText = team1.name;
-  document.getElementById("t2-name-display").innerText = team2.name;
-  document.getElementById("t1-team-legs").innerText = team1.legs;
-  document.getElementById("t2-team-legs").innerText = team2.legs;
+  // TEAM NAMES
+  document.getElementById("t0-name").innerText = team1.name;
+  document.getElementById("t1-name").innerText = team2.name;
 
-  document.getElementById("p1-name-display").innerText = players[0].name;
-  document.getElementById("p1-score").innerText = players[0].score;
-  document.getElementById("p1-legs").innerText = players[0].legs;
-  document.getElementById("p1-avg").innerText = calculateAvg(players[0]);
-  document.getElementById("p1-checkout").innerText = checkouts[players[0].score] || "";
+  // PLAYER NAMES
+  document.getElementById("t0-player-indicator").innerText = players[0].name;
+  document.getElementById("t1-player-indicator").innerText = players[1].name;
 
-  document.getElementById("p2-name-display").innerText = players[2] ? players[1].name : players[1].name;
-  document.getElementById("p2-score").innerText = players[1].score;
-  document.getElementById("p2-legs").innerText = players[1].legs;
-  document.getElementById("p2-avg").innerText = calculateAvg(players[1]);
-  document.getElementById("p2-checkout").innerText = checkouts[players[1].score] || "";
+  // SCORES
+  document.getElementById("t0-score").innerText = players[0].score;
+  document.getElementById("t1-score").innerText = players[1].score;
 
-  document.getElementById("p1-box").classList.toggle("active", activePlayer === 0);
-  document.getElementById("p2-box").classList.toggle("active", activePlayer === 1);
-  document.getElementById("turn-banner").innerText = `${players[activePlayer].name}'s Turn`;
+  // CHECKOUT SUGGESTIONS
+  document.getElementById("t0-checkout").innerText = checkouts[players[0].score] || "";
+  document.getElementById("t1-checkout").innerText = checkouts[players[1].score] || "";
+
+  // LEGS WON
+  document.getElementById("t0-legs").innerText = players[0].legs;
+  document.getElementById("t1-legs").innerText = players[1].legs;
+
+  // EVENING SCOREBOARD (top bar)
+  document.getElementById("t0-evening-name").innerText = team1.name;
+  document.getElementById("t1-evening-name").innerText = team2.name;
+  document.getElementById("t0-evening-score").innerText = team1.legs;
+  document.getElementById("t1-evening-score").innerText = team2.legs;
+
+  // ACTIVE PLAYER HIGHLIGHT
+  document.getElementById("team-0-card").classList.toggle("active-thrower", activePlayer === 0);
+  document.getElementById("team-1-card").classList.toggle("active-thrower", activePlayer === 1);
 }
+
 
 function calculateAvg(p) {
   return p.darts > 0 ? ((p.points / p.darts) * 3).toFixed(2) : "0.00";
@@ -287,3 +304,4 @@ function trackPlayerStats(statsObj, playerName, isWin, points, darts, tonPlus, t
 }
 
 updateUI();
+})
