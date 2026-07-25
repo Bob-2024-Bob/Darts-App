@@ -1,135 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Congress B Darts League Scoreboard</title>
-  <!-- Link to external CSS file -->
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Congress B Darts - Scoring</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <!-- 1. LANDING SCREEN -->
-  <div id="landing-screen" class="screen active">
-    <div class="landing-card">
-      <h1>🎯 Congress B Darts</h1>
-      <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Match Scorer & Evening Tracker</p>
-      
-      <button class="btn-primary" id="btn-quick-start">🚀 Start Evening Match</button>
-      <button class="btn-secondary" id="btn-open-stats">📊 Leaderboard & Stats</button>
-      <button class="btn-secondary" id="btn-open-setup">⚙️ Team & Player Setup</button>
-    </div>
+<nav class="top-nav">
+  <div class="nav-title">Congress B Darts</div>
+  <div class="nav-links">
+    <a href="index.html">Scoring</a>
+    <a href="history.html">History</a>
+    <a href="stats.html">Stats</a>
+  </div>
+</nav>
+
+<h1>Live Scoring</h1>
+
+<div class="scoreboard">
+  <div class="team-card" id="team-0-card">
+    <h2 id="t0-evening-name">Congress B</h2>
+    <p>Legs Won: <span id="t0-evening-score">0</span></p>
   </div>
 
-  <!-- 2. SCOREBOARD SCREEN -->
-  <div id="scoreboard-screen" class="screen">
-    <div class="top-bar">
-      <div class="evening-tracker">
-        <span id="t0-evening-name">Congress B</span> 
-        <span id="t0-evening-score" class="score-num">0</span> - <span id="t1-evening-score" class="score-num">0</span> 
-        <span id="t1-evening-name">Opponents</span>
-      </div>
+  <div class="team-card" id="team-1-card">
+    <h2 id="t1-evening-name">Opponents</h2>
+    <p>Legs Won: <span id="t1-evening-score">0</span></p>
+  </div>
+</div>
 
-      <div style="display: flex; gap: 0.5rem;">
-        <button class="btn-secondary" id="btn-stats-from-board" style="padding: 0.4rem 0.8rem; margin: 0; font-size: 0.9rem;">📊 Stats</button>
-        <button class="btn-danger" id="btn-end-night" style="padding: 0.4rem 0.8rem; margin: 0; font-size: 0.9rem;">🛑 End Night</button>
-      </div>
-    </div>
-
-    <div class="scoreboard-body">
-      <div class="match-stage">
-        <div class="teams-container">
-          
-          <div class="team-card active-thrower" id="team-0-card">
-            <div>
-              <h3 class="team-title" id="t0-name">Congress B</h3>
-              <div class="player-indicator" id="t0-player-indicator">🎯 Player 1</div>
-            </div>
-            
-            <div class="score-501" id="t0-score">501</div>
-            <div class="checkout-guide" id="t0-checkout"></div>
-            
-            <div class="legs-badge">Legs Won: <strong id="t0-legs" style="color: var(--accent);">0</strong></div>
-          </div>
-
-          <div class="team-card" id="team-1-card">
-            <div>
-              <h3 class="team-title" id="t1-name">Opponents</h3>
-              <div class="player-indicator" id="t1-player-indicator">Opponent 1</div>
-            </div>
-            
-            <div class="score-501" id="t1-score">501</div>
-            <div class="checkout-guide" id="t1-checkout"></div>
-            
-            <div class="legs-badge">Legs Won: <strong id="t1-legs" style="color: var(--accent);">0</strong></div>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="keypad-panel">
-        <div class="input-display" id="input-buffer">0</div>
-        
-        <div class="numpad-grid">
-          <button class="btn-key btn-num" data-val="7">7</button>
-          <button class="btn-key btn-num" data-val="8">8</button>
-          <button class="btn-key btn-num" data-val="9">9</button>
-          <button class="btn-key btn-num" data-val="4">4</button>
-          <button class="btn-key btn-num" data-val="5">5</button>
-          <button class="btn-key btn-num" data-val="6">6</button>
-          <button class="btn-key btn-num" data-val="1">1</button>
-          <button class="btn-key btn-num" data-val="2">2</button>
-          <button class="btn-key btn-num" data-val="3">3</button>
-          <button class="btn-key btn-clear" id="btn-clear">CLR</button>
-          <button class="btn-key btn-num" data-val="0">0</button>
-          <button class="btn-key btn-enter" id="btn-enter">OK</button>
-        </div>
-      </div>
-    </div>
+<div class="scoreboard">
+  <div class="team-card">
+    <h3 id="t0-name">Congress B</h3>
+    <p>Player: <span id="t0-player-indicator">Player 1</span></p>
+    <p>Score: <span id="t0-score">501</span></p>
+    <p>Checkout: <span id="t0-checkout"></span></p>
+    <p>Legs: <span id="t0-legs">0</span></p>
   </div>
 
-  <!-- 3. STATS SCREEN -->
-  <div id="stats-screen" class="screen">
-    <div class="top-bar">
-      <h2>📊 Leaderboard</h2>
-      <button class="btn-secondary" id="btn-stats-home" style="padding: 0.4rem 0.8rem; margin: 0;">🏠 Back</button>
-    </div>
-
-    <div class="stats-container">
-      <table class="stats-table">
-        <thead>
-          <tr>
-            <th style="text-align: left;">Player</th>
-            <th>3-Dart Avg</th>
-            <th>180s</th>
-            <th>High Checkout</th>
-            <th>Legs Won</th>
-          </tr>
-        </thead>
-        <tbody id="stats-table-body"></tbody>
-      </table>
-    </div>
+  <div class="team-card">
+    <h3 id="t1-name">Opponents</h3>
+    <p>Player: <span id="t1-player-indicator">Opponent 1</span></p>
+    <p>Score: <span id="t1-score">501</span></p>
+    <p>Checkout: <span id="t1-checkout"></span></p>
+    <p>Legs: <span id="t1-legs">0</span></p>
   </div>
+</div>
 
-  <!-- Setup Modal -->
-  <div class="modal-overlay" id="setup-modal">
-    <div class="modal-box">
-      <h2 style="color: var(--accent); margin-top: 0;">Match Setup</h2>
-      
-      <label style="color: var(--text-dim);">Home Team & Player</label>
-      <input type="text" id="setup-t0-name" value="Congress B" />
-      <input type="text" id="setup-p0-name" value="Player 1" />
+<h2>Score Entered: <span id="input-buffer">0</span></h2>
 
-      <label style="color: var(--text-dim);">Away Team & Player</label>
-      <input type="text" id="setup-t1-name" value="Opponents" />
-      <input type="text" id="setup-p1-name" value="Opponent 1" />
+<div class="keypad">
+  <button class="btn-num" data-val="1">1</button>
+  <button class="btn-num" data-val="2">2</button>
+  <button class="btn-num" data-val="3">3</button>
+  <button class="btn-num" data-val="4">4</button>
+  <button class="btn-num" data-val="5">5</button>
+  <button class="btn-num" data-val="6">6</button>
+  <button class="btn-num" data-val="7">7</button>
+  <button class="btn-num" data-val="8">8</button>
+  <button class="btn-num" data-val="9">9</button>
+  <button class="btn-num" data-val="0">0</button>
+</div>
 
-      <button class="btn-primary" id="btn-save-setup">Save & Start Match</button>
-    </div>
+<button id="btn-clear" class="btn-primary">Clear</button>
+<button id="btn-enter" class="btn-primary">Enter Score</button>
+<button id="btn-new-match" class="btn-primary">New Match Setup</button>
+
+<!-- Setup Modal -->
+<div class="modal-overlay hidden" id="setup-modal">
+  <div class="modal-box">
+    <h2>Match Setup</h2>
+
+    <label>Home Team</label>
+    <input type="text" id="setup-t0-name" value="Congress B">
+
+    <label>Away Team</label>
+    <input type="text" id="setup-t1-name" value="Opponents">
+
+    <label>Home Player</label>
+    <input type="text" id="setup-p0-name" value="Player 1">
+
+    <label>Away Player</label>
+    <input type="text" id="setup-p1-name" value="Opponent 1">
+
+    <button id="btn-save-setup" class="btn-primary">Save & Start Match</button>
   </div>
+</div>
 
-  <!-- Link to external JS file -->
-  <script type="module" src="app.js"></script>
+<script type="module" src="app.js"></script>
 
 </body>
 </html>
