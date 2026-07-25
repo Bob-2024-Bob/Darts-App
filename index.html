@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Congress B Darts Scoreboard</title>
+  <title>Congress B Darts League Scoreboard</title>
   <style>
     :root {
       --bg-color: #0b132b;
@@ -31,7 +31,6 @@
       color: var(--text);
     }
 
-    /* Screen Views */
     .screen {
       display: none;
       width: 100vw;
@@ -39,9 +38,7 @@
       flex-direction: column;
     }
 
-    .screen.active {
-      display: flex;
-    }
+    .screen.active { display: flex; }
 
     /* ---------------- 1. LANDING PAGE ---------------- */
     #landing-screen {
@@ -61,69 +58,59 @@
       box-shadow: 0 12px 32px rgba(0,0,0,0.5);
     }
 
-    .landing-card h1 {
-      font-size: 2.5rem;
-      margin-top: 0;
-      color: var(--accent);
-    }
+    .landing-card h1 { font-size: 2.5rem; margin-top: 0; color: var(--accent); }
 
-    .btn-primary {
+    .btn-primary, .btn-secondary, .btn-danger {
       width: 100%;
-      padding: 1.2rem;
-      font-size: 1.4rem;
+      padding: 1.1rem;
+      font-size: 1.2rem;
       font-weight: bold;
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 1rem;
-      transition: transform 0.1s ease;
-    }
-
-    .btn-secondary {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.1rem;
-      font-weight: bold;
-      background: #3a506b;
-      color: #fff;
       border: none;
       border-radius: 12px;
       cursor: pointer;
       margin-top: 0.8rem;
     }
 
-    .btn-primary:active, .btn-secondary:active {
-      transform: scale(0.98);
-    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: #3a506b; color: #fff; }
+    .btn-danger { background: var(--danger); color: #fff; }
 
-    /* ---------------- 2. SCOREBOARD SCREEN (IPAD FULL REAL ESTATE) ---------------- */
+    /* ---------------- 2. SCOREBOARD SCREEN ---------------- */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1rem;
       background: var(--card-bg);
       border-bottom: 1px solid #3a506b;
-      height: 60px;
+      min-height: 55px;
     }
 
-    .top-bar h2 {
-      margin: 0;
-      font-size: 1.2rem;
+    /* Evening Match Score Tracker at Top */
+    .evening-tracker {
+      background: #0b132b;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 0.4rem 1.2rem;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .evening-tracker span {
       color: var(--accent);
+      font-size: 1.3rem;
+      margin: 0 0.5rem;
     }
 
     .scoreboard-body {
       display: flex;
-      flex: 1; /* Takes all remaining height on iPad */
+      flex: 1;
       gap: 1rem;
       padding: 1rem;
-      height: calc(100vh - 60px);
+      height: calc(100vh - 55px);
     }
 
-    /* Main Match Area (Left 70%) */
     .match-stage {
       flex: 7;
       display: flex;
@@ -131,7 +118,6 @@
       gap: 1rem;
     }
 
-    /* Team Columns Container */
     .teams-container {
       flex: 1;
       display: grid;
@@ -150,64 +136,34 @@
       justify-content: space-between;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
 
     .team-card.active-thrower {
       border-color: var(--accent-active);
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
-      background: rgba(28, 37, 65, 0.95);
     }
 
-    .team-header {
-      width: 100%;
-    }
-
-    .team-title {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: var(--text-dim);
-      margin: 0;
-    }
-
-    .team-card.active-thrower .team-title {
-      color: #fff;
-    }
+    .team-title { font-size: 1.6rem; font-weight: 800; color: var(--text-dim); margin: 0; }
+    .team-card.active-thrower .team-title { color: #fff; }
 
     .player-indicator {
       font-size: 1.2rem;
       font-weight: bold;
       color: var(--accent-active);
       margin-top: 0.25rem;
-      min-height: 1.5rem;
     }
 
-    /* Giant Centered 501 Score */
     .score-501 {
-      font-size: clamp(5rem, 11vw, 10rem);
+      font-size: clamp(4rem, 10vw, 9rem);
       font-weight: 900;
       color: var(--accent);
       line-height: 1;
       margin: 0.5rem 0;
-      text-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
 
-    .checkout-guide {
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #ffb703;
-      min-height: 2rem;
-    }
+    .checkout-guide { font-size: 1.3rem; font-weight: bold; color: #ffb703; min-height: 1.8rem; }
+    .legs-badge { font-size: 1.1rem; background: #0b132b; padding: 0.3rem 0.8rem; border-radius: 16px; }
 
-    .legs-badge {
-      font-size: 1.2rem;
-      background: #0b132b;
-      padding: 0.4rem 1rem;
-      border-radius: 20px;
-      border: 1px solid #3a506b;
-    }
-
-    /* Keypad Panel (Right 30%) */
     .keypad-panel {
       flex: 3;
       background: var(--card-bg);
@@ -219,13 +175,13 @@
 
     .input-display {
       background: #0b132b;
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: 900;
       color: var(--accent);
       text-align: right;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 1rem;
       border-radius: 12px;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem;
       border: 1px solid #3a506b;
     }
 
@@ -233,7 +189,7 @@
       flex: 1;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .btn-key {
@@ -246,45 +202,42 @@
       cursor: pointer;
     }
 
-    .btn-key:active {
-      background: #4f6d91;
-    }
-
     .btn-clear { background: var(--danger); }
     .btn-enter { background: var(--accent); color: #000; }
 
-    /* Modal Overlay for Setup */
+    /* ---------------- ADAPTIVE IPAD PORTRAIT ORIENTATION ---------------- */
+    @media (orientation: portrait) {
+      .scoreboard-body {
+        flex-direction: column; /* Keypad moves underneath team scores */
+      }
+      .match-stage {
+        flex: none;
+        height: 50%; /* Top half is scores */
+      }
+      .keypad-panel {
+        flex: none;
+        height: 48%; /* Bottom half is keypad */
+      }
+      .score-501 {
+        font-size: clamp(3.5rem, 12vw, 6.5rem);
+      }
+    }
+
+    /* ---------------- 3. STATS TABLE ---------------- */
+    .stats-container { padding: 1.5rem; overflow-y: auto; flex: 1; }
+    .stats-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 16px; }
+    .stats-table th, .stats-table td { padding: 1rem; text-align: center; border-bottom: 1px solid #3a506b; }
+    .stats-table th { background: #0b132b; color: var(--accent); }
+
+    /* Modal Overlay */
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(11, 19, 43, 0.95);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+      display: none; justify-content: center; align-items: center; z-index: 1000;
     }
-
     .modal-overlay.active { display: flex; }
-
-    .modal-box {
-      background: var(--card-bg);
-      border: 2px solid var(--accent);
-      border-radius: 20px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 450px;
-    }
-
-    .modal-box input {
-      width: 100%;
-      padding: 0.8rem;
-      margin: 0.5rem 0 1rem 0;
-      border-radius: 8px;
-      border: 1px solid #3a506b;
-      background: #0b132b;
-      color: #fff;
-      font-size: 1rem;
-    }
+    .modal-box { background: var(--card-bg); border: 2px solid var(--accent); border-radius: 20px; padding: 2rem; width: 90%; max-width: 450px; }
+    .modal-box input { width: 100%; padding: 0.8rem; margin: 0.5rem 0 1rem 0; border-radius: 8px; border: 1px solid #3a506b; background: #0b132b; color: #fff; }
   </style>
 </head>
 <body>
@@ -293,30 +246,36 @@
   <div id="landing-screen" class="screen active">
     <div class="landing-card">
       <h1>🎯 Congress B Darts</h1>
-      <p style="color: var(--text-dim); margin-bottom: 2rem;">Match Scorer & Player Performance Tracker</p>
+      <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Match Scorer & Evening Tracker</p>
       
-      <button class="btn-primary" id="btn-quick-start">🚀 Quick Match</button>
-      <button class="btn-secondary" id="btn-open-setup">⚙️ Match Setup</button>
+      <button class="btn-primary" id="btn-quick-start">🚀 Start Evening Match</button>
+      <button class="btn-secondary" id="btn-open-stats">📊 Leaderboard & Stats</button>
+      <button class="btn-secondary" id="btn-open-setup">⚙️ Team & Player Setup</button>
     </div>
   </div>
 
   <!-- ================= 2. SCOREBOARD SCREEN ================= -->
   <div id="scoreboard-screen" class="screen">
     <div class="top-bar">
-      <h2>🎯 Live Board</h2>
-      <div>
-        <button class="btn-secondary" id="btn-home" style="padding: 0.4rem 0.8rem; margin: 0;">🏠 Home</button>
+      <!-- Running Evening Tally -->
+      <div class="evening-tracker">
+        <span id="t0-evening-name">Congress B</span> 
+        <span id="t0-evening-score">0</span> - <span id="t1-evening-score">0</span> 
+        <span id="t1-evening-name">Opponents</span>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn-secondary" id="btn-stats-from-board" style="padding: 0.4rem 0.8rem; margin: 0;">📊 Stats</button>
+        <button class="btn-danger" id="btn-end-night" style="padding: 0.4rem 0.8rem; margin: 0;">🛑 End Night</button>
       </div>
     </div>
 
     <div class="scoreboard-body">
-      <!-- Left Stage: Teams & Giant Scores -->
       <div class="match-stage">
         <div class="teams-container">
           
-          <!-- Team 1 / Player 1 -->
           <div class="team-card active-thrower" id="team-0-card">
-            <div class="team-header">
+            <div>
               <h3 class="team-title" id="t0-name">Congress B</h3>
               <div class="player-indicator" id="t0-player-indicator">🎯 Player 1</div>
             </div>
@@ -327,9 +286,8 @@
             <div class="legs-badge">Legs Won: <strong id="t0-legs" style="color: var(--accent);">0</strong></div>
           </div>
 
-          <!-- Team 2 / Player 2 -->
           <div class="team-card" id="team-1-card">
-            <div class="team-header">
+            <div>
               <h3 class="team-title" id="t1-name">Opponent</h3>
               <div class="player-indicator" id="t1-player-indicator">Opponent 1</div>
             </div>
@@ -343,7 +301,6 @@
         </div>
       </div>
 
-      <!-- Right Stage: Touch Keypad -->
       <div class="keypad-panel">
         <div class="input-display" id="input-buffer">0</div>
         
@@ -365,12 +322,35 @@
     </div>
   </div>
 
-  <!-- ================= 3. SETUP MODAL ================= -->
+  <!-- ================= 3. STATS SCREEN ================= -->
+  <div id="stats-screen" class="screen">
+    <div class="top-bar">
+      <h2>📊 Congress Players Leaderboard</h2>
+      <button class="btn-secondary" id="btn-stats-home" style="padding: 0.4rem 0.8rem; margin: 0;">🏠 Back</button>
+    </div>
+
+    <div class="stats-container">
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th style="text-align: left;">Player</th>
+            <th>3-Dart Avg</th>
+            <th>180s</th>
+            <th>High Checkout</th>
+            <th>Legs Won</th>
+          </tr>
+        </thead>
+        <tbody id="stats-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Setup Modal -->
   <div class="modal-overlay" id="setup-modal">
     <div class="modal-box">
       <h2 style="color: var(--accent); margin-top: 0;">Match Setup</h2>
       
-      <label style="color: var(--text-dim);">Home Team (Your Team)</label>
+      <label style="color: var(--text-dim);">Home Team</label>
       <input type="text" id="setup-t0-name" value="Congress B" />
       <input type="text" id="setup-p0-name" value="Player 1" />
 
@@ -378,41 +358,53 @@
       <input type="text" id="setup-t1-name" value="Opponents" />
       <input type="text" id="setup-p1-name" value="Opponent 1" />
 
-      <button class="btn-primary" id="btn-save-setup">Start Game</button>
+      <button class="btn-primary" id="btn-save-setup">Save & Start Match</button>
     </div>
   </div>
 
   <script>
-    // App State
-    let activeTeamIndex = 0; // 0 = Team 1, 1 = Team 2
+    let activeTeamIndex = 0;
     let inputBuffer = "";
+
+    // Running Match Record for the Evening
+    let eveningMatchesWon = [0, 0];
 
     const teams = [
       { name: "Congress B", playerName: "Player 1", score: 501, legs: 0 },
       { name: "Opponents", playerName: "Opponent 1", score: 501, legs: 0 }
     ];
 
+    const playerStats = {
+      "Player 1": { totalPts: 0, turns: 0, 180s: 0, highCheckout: 0, legsWon: 0 },
+      "Opponent 1": { totalPts: 0, turns: 0, 180s: 0, highCheckout: 0, legsWon: 0 }
+    };
+
     const checkouts = {
       170: "T20 T20 Bull", 167: "T20 T19 Bull", 164: "T20 T18 Bull", 160: "T20 T20 D20",
       100: "T20 D20", 80: "T20 D10", 60: "20 D20", 40: "D20", 32: "D16"
     };
 
-    // Navigation Controls
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(screenId).classList.add('active');
     }
 
-    document.getElementById("btn-quick-start").addEventListener("click", () => {
-      showScreen("scoreboard-screen");
-      updateUI();
+    document.getElementById("btn-quick-start").addEventListener("click", () => { showScreen("scoreboard-screen"); updateUI(); });
+    document.getElementById("btn-open-stats").addEventListener("click", () => { renderStatsTable(); showScreen("stats-screen"); });
+    document.getElementById("btn-stats-from-board").addEventListener("click", () => { renderStatsTable(); showScreen("stats-screen"); });
+    document.getElementById("btn-stats-home").addEventListener("click", () => showScreen("landing-screen"));
+
+    // End Night Action
+    document.getElementById("btn-end-night").addEventListener("click", () => {
+      if (confirm("End the evening's play and return home? Running match totals will reset.")) {
+        eveningMatchesWon = [0, 0];
+        teams[0].score = 501; teams[0].legs = 0;
+        teams[1].score = 501; teams[1].legs = 0;
+        showScreen("landing-screen");
+      }
     });
 
-    document.getElementById("btn-home").addEventListener("click", () => {
-      showScreen("landing-screen");
-    });
-
-    // Setup Modal Controls
+    // Setup Modal
     const modal = document.getElementById("setup-modal");
     document.getElementById("btn-open-setup").addEventListener("click", () => modal.classList.add("active"));
     
@@ -422,6 +414,10 @@
       teams[1].name = document.getElementById("setup-t1-name").value || "Opponents";
       teams[1].playerName = document.getElementById("setup-p1-name").value || "Opponent 1";
       
+      [teams[0].playerName, teams[1].playerName].forEach(name => {
+        if (!playerStats[name]) playerStats[name] = { totalPts: 0, turns: 0, 180s: 0, highCheckout: 0, legsWon: 0 };
+      });
+
       teams[0].score = 501; teams[0].legs = 0;
       teams[1].score = 501; teams[1].legs = 0;
       activeTeamIndex = 0;
@@ -431,18 +427,10 @@
       updateUI();
     });
 
-    // Manual Thrower Switching via Tap
-    document.getElementById("team-0-card").addEventListener("click", () => {
-      activeTeamIndex = 0;
-      updateUI();
-    });
+    document.getElementById("team-0-card").addEventListener("click", () => { activeTeamIndex = 0; updateUI(); });
+    document.getElementById("team-1-card").addEventListener("click", () => { activeTeamIndex = 1; updateUI(); });
 
-    document.getElementById("team-1-card").addEventListener("click", () => {
-      activeTeamIndex = 1;
-      updateUI();
-    });
-
-    // Keypad Logic
+    // Keypad Input
     document.querySelectorAll(".btn-num").forEach(btn => {
       btn.addEventListener("click", () => {
         if (inputBuffer.length < 3) {
@@ -459,49 +447,90 @@
 
     document.getElementById("btn-enter").addEventListener("click", () => {
       const pts = parseInt(inputBuffer, 10) || 0;
-      if (pts > 180) {
-        alert("Max turn score is 180!");
-      } else {
-        processTurn(pts);
-      }
+      if (pts > 180) { alert("Max turn score is 180!"); } else { processTurn(pts); }
       inputBuffer = "";
       document.getElementById("input-buffer").innerText = "0";
     });
 
     function processTurn(pts) {
       const currentTeam = teams[activeTeamIndex];
+      const pName = currentTeam.playerName;
+
+      if (!playerStats[pName]) playerStats[pName] = { totalPts: 0, turns: 0, 180s: 0, highCheckout: 0, legsWon: 0 };
+
       const remaining = currentTeam.score - pts;
 
       if (remaining < 0 || remaining === 1) {
         alert("BUSTED!");
+        playerStats[pName].turns += 1;
       } else if (remaining === 0) {
         currentTeam.legs += 1;
-        alert(`${currentTeam.playerName} won the leg!`);
+        playerStats[pName].turns += 1;
+        playerStats[pName].totalPts += pts;
+        playerStats[pName].legsWon += 1;
+
+        if (pts > playerStats[pName].highCheckout) playerStats[pName].highCheckout = pts;
+
+        alert(`${pName} checked out ${pts} to win the leg!`);
+
+        // Check if a full match was won (Best of 3 / Best of 5 legs)
+        if (currentTeam.legs >= 3) {
+          eveningMatchesWon[activeTeamIndex] += 1;
+          alert(`🏆 ${currentTeam.name} (${pName}) WON THE MATCH! Running total updated.`);
+          teams[0].legs = 0;
+          teams[1].legs = 0;
+        }
+
         teams[0].score = 501;
         teams[1].score = 501;
       } else {
         currentTeam.score = remaining;
+        playerStats[pName].turns += 1;
+        playerStats[pName].totalPts += pts;
+        if (pts === 180) playerStats[pName]['180s'] += 1;
       }
 
-      // Automatically toggle turn to the next player
       activeTeamIndex = activeTeamIndex === 0 ? 1 : 0;
       updateUI();
     }
 
+    function renderStatsTable() {
+      const tbody = document.getElementById("stats-table-body");
+      tbody.innerHTML = "";
+
+      Object.keys(playerStats).forEach(pName => {
+        const stats = playerStats[pName];
+        const avg = stats.turns > 0 ? (stats.totalPts / stats.turns).toFixed(1) : "0.0";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td style="text-align: left; color: var(--accent);">${pName}</td>
+          <td>${avg}</td>
+          <td style="color: ${stats['180s'] > 0 ? '#ffb703' : 'inherit'};">${stats['180s']}</td>
+          <td>${stats.highCheckout > 0 ? stats.highCheckout : '-'}</td>
+          <td>${stats.legsWon}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
     function updateUI() {
-      // Team 1 UI
       document.getElementById("t0-name").innerText = teams[0].name;
       document.getElementById("t0-score").innerText = teams[0].score;
       document.getElementById("t0-legs").innerText = teams[0].legs;
       document.getElementById("t0-checkout").innerText = checkouts[teams[0].score] || "";
 
-      // Team 2 UI
       document.getElementById("t1-name").innerText = teams[1].name;
       document.getElementById("t1-score").innerText = teams[1].score;
       document.getElementById("t1-legs").innerText = teams[1].legs;
       document.getElementById("t1-checkout").innerText = checkouts[teams[1].score] || "";
 
-      // Update Active Thrower Indicators & Card Borders
+      // Update Evening Match Counter
+      document.getElementById("t0-evening-name").innerText = teams[0].name;
+      document.getElementById("t0-evening-score").innerText = eveningMatchesWon[0];
+      document.getElementById("t1-evening-score").innerText = eveningMatchesWon[1];
+      document.getElementById("t1-evening-name").innerText = teams[1].name;
+
       const card0 = document.getElementById("team-0-card");
       const card1 = document.getElementById("team-1-card");
       const ind0 = document.getElementById("t0-player-indicator");
