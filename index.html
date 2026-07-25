@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>DartCounter Team Scorer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  
+  <!-- Setup Modal -->
+  <div class="modal-overlay" id="setup-modal">
+    <div class="modal-card">
+      <h2>🎯 Match Setup</h2>
+      <form id="setup-form">
+        <div class="form-section">
+          <h3>Your Team (Home/Away)</h3>
+          <input type="text" id="input-t1-name" placeholder="Your Team Name" value="Congress B" required />
+          <input type="text" id="input-p1-name" placeholder="Your Player Name" value="Player 1" required />
+        </div>
+
+        <div class="form-section">
+          <h3>Opposing Team</h3>
+          <input type="text" id="input-t2-name" placeholder="Opponent Team Name" value="Opponent Team" required />
+          <input type="text" id="input-p2-name" placeholder="Opponent Player Name" value="Opponent 1" required />
+        </div>
+
+        <button type="submit" class="btn-start">Start Match</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-container">
+    
+    <!-- Top App Bar & Navigation Tabs -->
+    <header class="app-header card">
+      <h1>🎯 Team Darts Tracker</h1>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="scorer-tab">🎯 Board</button>
+        <button class="tab-btn" data-tab="stats-tab">📊 Team Stats</button>
+      </nav>
+    </header>
+
+    <!-- TAB 1: LIVE SCORER & KEYPAD ONLY -->
+    <main id="scorer-tab" class="tab-content active">
+      <!-- Team Score Banner -->
+      <div class="team-banner card">
+        <div class="team-score-box">
+          <span class="team-name" id="t1-name-display">Congress B</span>
+          <span class="team-legs" id="t1-team-legs">0</span>
+        </div>
+        <div class="team-vs">VS</div>
+        <div class="team-score-box">
+          <span class="team-legs" id="t2-team-legs">0</span>
+          <span class="team-name" id="t2-name-display">Opponent</span>
+        </div>
+      </div>
+
+      <!-- Player Cards -->
+      <div class="match-header">
+        <div class="player-box card active" id="p1-box">
+          <div class="p-name" id="p1-name-display">Player 1</div>
+          <div class="p-score" id="p1-score">501</div>
+          <div class="p-checkout" id="p1-checkout"></div>
+          <div class="p-stats">
+            <span>Legs: <strong id="p1-legs">0</strong></span>
+            <span>Avg: <strong id="p1-avg">0.00</strong></span>
+          </div>
+        </div>
+
+        <div class="player-box card" id="p2-box">
+          <div class="p-name" id="p2-name-display">Player 2</div>
+          <div class="p-score" id="p2-score">501</div>
+          <div class="p-checkout" id="p2-checkout"></div>
+          <div class="p-stats">
+            <span>Legs: <strong id="p2-legs">0</strong></span>
+            <span>Avg: <strong id="p2-avg">0.00</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Keypad Card -->
+      <div class="keypad-card card">
+        <div class="turn-header">
+          <span class="turn-indicator" id="turn-banner">Player 1's Turn</span>
+          <button class="btn-new-match" id="btn-new-match">⚙️ Setup</button>
+        </div>
+        
+        <div class="input-preview" id="input-buffer">0</div>
+
+        <div class="numpad">
+          <button class="btn-num" data-val="7">7</button>
+          <button class="btn-num" data-val="8">8</button>
+          <button class="btn-num" data-val="9">9</button>
+          <button class="btn-num" data-val="4">4</button>
+          <button class="btn-num" data-val="5">5</button>
+          <button class="btn-num" data-val="6">6</button>
+          <button class="btn-num" data-val="1">1</button>
+          <button class="btn-num" data-val="2">2</button>
+          <button class="btn-num" data-val="3">3</button>
+          <button class="btn-action btn-clear" id="btn-clear">CLEAR</button>
+          <button class="btn-num" data-val="0">0</button>
+          <button class="btn-action btn-enter" id="btn-enter">ENTER</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 2: TEAM STATS PAGE (CONGRESS B ONLY) -->
+    <main id="stats-tab" class="tab-content">
+      <div class="card table-wrapper">
+        <h2>🛡️ Congress B Player Performance</h2>
+        <p class="sub-text">Aggregated stats for Congress B squad members.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Avg</th>
+              <th>100+</th>
+              <th>180s</th>
+              <th>High Out</th>
+              <th>Matches</th>
+              <th>Legs W/L</th>
+            </tr>
+          </thead>
+          <tbody id="team-stats-list"></tbody>
+        </table>
+      </div>
+
+      <!-- Saved Matches History -->
+      <div class="card table-wrapper">
+        <h2>📋 Match History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Winner</th>
+              <th>Matchup</th>
+              <th>Avg</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="history-list"></tbody>
+        </table>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
