@@ -220,7 +220,11 @@ function saveGameState() {
     localStorage.setItem("scoreHistory", JSON.stringify(turnHistory));
     localStorage.setItem("currentLegStats", JSON.stringify(currentLegStats));
     localStorage.setItem("matchSchedule", JSON.stringify(matchSchedule));
-  } else {
+ } else {
+    // LEAGUE MODE: keep legs persistent across pages
+    localStorage.setItem("congressLegs", congressLegs);
+    localStorage.setItem("opponentLegs", opponentLegs);
+
     const stats = buildStatsObject();
     saveStats(stats);
   }
