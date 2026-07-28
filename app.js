@@ -1,7 +1,7 @@
 // ============================================================
-// FIREBASE SETUP (LEAGUE MODE CLOUD SYNC)
+// FIREBASE SETUP (LEAGUE MODE CLOUD SYNC) WITH NO DUPLICATES
 // ============================================================
-const firebaseConfig = {
+var firebaseConfig = window.firebaseConfig || {
   apiKey: "AIzaSyBo0Xq73bn7LeS0dFSkvpfpbbU0pXp80Uc",
   authDomain: "team-darts-app.firebaseapp.com",
   projectId: "team-darts-app",
@@ -10,22 +10,42 @@ const firebaseConfig = {
   appId: "1:180812615155:web:38cc89978f5f4a4ae6d686",
   measurementId: "G-P8SHGGVFS4"
 };
+window.firebaseConfig = firebaseConfig;
 
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+var app = firebase.apps && firebase.apps.length
+  ? firebase.app()
+  : firebase.initializeApp(firebaseConfig);
 
-auth.signInAnonymously().catch(console.error);
+var db = firebase.firestore();
+var auth = firebase.auth();
+
+if (!window._authStarted) {
+  window._authStarted = true;
+  auth.signInAnonymously().catch(console.error);
+}
 
 auth.onAuthStateChanged(user => {
   if (user) {
     window.userId = user.uid;
     loadStats(); // League stats from Firestore (if any)
   } else {
-    // No user yet, just render local state (casual or default)
     updateUI();
   }
 });
+
+// ============================================================
+// SAFE JSON HELPERS
+// ============================================================
+function safeJSON(key, fallback) {
+  try {
+    var raw = localStorage.getItem(key);
+    if (!raw || raw === "undefined") return fallback;
+    var parsed = JSON.parse(raw);
+    return parsed;
+  } catch (e) {
+    return fallback;
+  }
+}
 
 // ============================================================
 // GLOBAL STATE & PERSISTENCE
@@ -47,19 +67,22 @@ if (isNaN(currentMatchIndex)) currentMatchIndex = 0;
 var congressScore = getValidScore("congressScore");
 var opponentScore = getValidScore("opponentScore");
 
-var turnHistory = JSON.parse(localStorage.getItem("scoreHistory") || "[]");
+var turnHistory = safeJSON("scoreHistory", []);
 if (!Array.isArray(turnHistory)) turnHistory = [];
 
 var matchSchedule = []; // Will be filled from localStorage (casual) or Firestore (league)
 
-var currentLegStats = JSON.parse(localStorage.getItem("currentLegStats") || JSON.stringify({
-  totalScore: 0,
-  dartsThrown: 0,
-  hundreds: 0,
-  oneForties: 0,
-  oneEighties: 0,
-  checkoutAttempts: 0
-}));
+var currentLegStats = safeJSON(
+  "currentLegStats",
+  {
+    totalScore: 0,
+    dartsThrown: 0,
+    hundreds: 0,
+    oneForties: 0,
+    oneEighties: 0,
+    checkoutAttempts: 0
+  }
+);
 
 // ============================================================
 // CHECKOUT TABLE
@@ -111,8 +134,7 @@ function getCheckoutText(score) {
 // FIRESTORE STATS HELPERS (LEAGUE MODE ONLY)
 // ============================================================
 function buildStatsObject() {
-  // League mode only: casual mode is NOT saved to Firestore
-  const players = JSON.parse(localStorage.getItem("congressPlayers") || "[]");
+  var players = safeJSON("congressPlayers", []);
 
   return {
     congressLegs,
@@ -143,8 +165,7 @@ function loadStats() {
 
   const isCasual = localStorage.getItem("isCasualMode") === "true";
   if (isCasual) {
-    // Casual mode: do NOT load from Firestore, just use local state
-    matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+    matchSchedule = safeJSON("matchSchedule", []);
     updateUI();
     return;
   }
@@ -155,7 +176,6 @@ function loadStats() {
         const stats = doc.data();
         console.log("League stats loaded:", stats);
 
-        // Apply to global vars
         congressLegs = stats.congressLegs ?? congressLegs;
         opponentLegs = stats.opponentLegs ?? opponentLegs;
         congressScore = stats.congressScore ?? congressScore;
@@ -166,7 +186,6 @@ function loadStats() {
         turnHistory = stats.turnHistory || [];
         currentLegStats = stats.currentLegStats || currentLegStats;
 
-        // Persist league players locally for stats page
         if (stats.congressPlayers) {
           localStorage.setItem("congressPlayers", JSON.stringify(stats.congressPlayers));
         }
@@ -174,14 +193,13 @@ function loadStats() {
         applyStatsToUI(stats);
       } else {
         console.log("No league stats found for this user yet.");
-        // Fall back to local state
-        matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+        matchSchedule = safeJSON("matchSchedule", []);
         updateUI();
       }
     })
     .catch(err => {
       console.error("Error loading stats:", err);
-      matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+      matchSchedule = safeJSON("matchSchedule", []);
       updateUI();
     });
 }
@@ -193,7 +211,6 @@ function saveGameState() {
   const isCasual = localStorage.getItem("isCasualMode") === "true";
 
   if (isCasual) {
-    // CASUAL MODE: local only
     localStorage.setItem("congressLegs", congressLegs);
     localStorage.setItem("opponentLegs", opponentLegs);
     localStorage.setItem("activeSide", activeSide);
@@ -204,7 +221,6 @@ function saveGameState() {
     localStorage.setItem("currentLegStats", JSON.stringify(currentLegStats));
     localStorage.setItem("matchSchedule", JSON.stringify(matchSchedule));
   } else {
-    // LEAGUE MODE: Firestore
     const stats = buildStatsObject();
     saveStats(stats);
   }
@@ -329,7 +345,6 @@ function handleScoreInput(score) {
 // STAT TRACKING (LEAGUE ONLY)
 // ============================================================
 function updatePlayerStatsOnLegEnd(playerName, won) {
-  // Do NOT update stats if in Casual Mode
   var isCasual = localStorage.getItem("isCasualMode") === "true";
   if (isCasual || !playerName) return;
 
@@ -340,7 +355,7 @@ function updatePlayerStatsOnLegEnd(playerName, won) {
     return;
   }
 
-  var players = JSON.parse(localStorage.getItem("congressPlayers") || "[]");
+  var players = safeJSON("congressPlayers", []);
   var targetName = playerName.trim().toLowerCase();
 
   players.forEach(function(player) {
@@ -363,7 +378,6 @@ function updatePlayerStatsOnLegEnd(playerName, won) {
 
   localStorage.setItem("congressPlayers", JSON.stringify(players));
 
-  // Also push updated league stats to Firestore
   const stats = buildStatsObject();
   saveStats(stats);
 }
@@ -380,14 +394,12 @@ function checkLegProgression(winnerSide) {
   var isCasual = localStorage.getItem("isCasualMode") === "true";
 
   if (isCasual) {
-    // CASUAL MODE: alternate active side, no bull-up
     var totalLegsPlayed = congressLegs + opponentLegs;
     activeSide = (totalLegsPlayed % 2 === 0) ? "congress" : "opponents";
 
     var bullModal = document.getElementById("bull-modal") || document.getElementById("bull-off-modal");
     if (bullModal) bullModal.style.display = "none";
   } else {
-    // LEAGUE MODE
     var totalLegsInMatch = (congressLegs + opponentLegs) % 3;
 
     if (totalLegsInMatch === 2) {
@@ -524,7 +536,6 @@ function hideBullUpModal() {
 function applyStatsToUI(stats) {
   var isCasual = localStorage.getItem("isCasualMode") === "true";
 
-  // 1. Team/Player Names
   var cCardHeader = document.querySelector("#congress-card h2");
   var oCardHeader = document.getElementById("opponent-team-display");
   var cPlayerSub = document.getElementById("current-player-display");
@@ -539,7 +550,7 @@ function applyStatsToUI(stats) {
     if (cPlayerSub) cPlayerSub.innerText = p1;
     if (oPlayerSub) oPlayerSub.innerText = p2;
 
-    matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+    matchSchedule = safeJSON("matchSchedule", []);
   } else {
     var opponentTeamName = localStorage.getItem("opponentTeamName") || "Opponents";
     if (cCardHeader) cCardHeader.innerText = "Congress B";
@@ -548,7 +559,7 @@ function applyStatsToUI(stats) {
     if (stats && stats.matchSchedule) {
       matchSchedule = stats.matchSchedule;
     } else {
-      matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+      matchSchedule = safeJSON("matchSchedule", []);
     }
 
     var currentMatch = matchSchedule[currentMatchIndex] || {};
@@ -556,7 +567,6 @@ function applyStatsToUI(stats) {
     if (oPlayerSub) oPlayerSub.innerText = currentMatch.awayPlayer || opponentTeamName;
   }
 
-  // Bull modal button text
   var modalOppBtn = document.getElementById("bull-modal-opp-btn");
   if (modalOppBtn) {
     modalOppBtn.innerText = isCasual
@@ -564,7 +574,6 @@ function applyStatsToUI(stats) {
       : (localStorage.getItem("opponentTeamName") || "Opponents");
   }
 
-  // 2. Legs & Scores
   var cLegsEl = document.getElementById("congress-legs");
   var oLegsEl = document.getElementById("opponent-legs");
   var cScoreEl = document.getElementById("congress-score");
@@ -576,14 +585,12 @@ function applyStatsToUI(stats) {
   if (cScoreEl) cScoreEl.innerText = congressScore > 0 ? congressScore : 501;
   if (oScoreEl) oScoreEl.innerText = opponentScore > 0 ? opponentScore : 501;
 
-  // 3. Checkouts
   var cCheckEl = document.getElementById("congress-checkout");
   var oCheckEl = document.getElementById("opponent-checkout");
 
   if (cCheckEl) cCheckEl.innerText = getCheckoutText(congressScore);
   if (oCheckEl) oCheckEl.innerText = getCheckoutText(opponentScore);
 
-  // 4. Active turn highlighting
   var cCard = document.getElementById("congress-card");
   var oCard = document.getElementById("opponent-card");
 
@@ -597,7 +604,6 @@ function applyStatsToUI(stats) {
     }
   }
 
-  // 5. Turn history
   var cHistoryEl = document.getElementById("congress-history");
   var oHistoryEl = document.getElementById("opponent-history");
 
@@ -628,7 +634,6 @@ function updateUI() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  // On first load, use local state; Firestore will override for league mode
-  matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+  matchSchedule = safeJSON("matchSchedule", []);
   updateUI();
 });
