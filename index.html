@@ -25,6 +25,13 @@
       flex-direction: column;
       align-items: center;
       position: relative;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .team-panel:active {
+      transform: scale(0.98);
     }
 
     .team-panel.active-turn {
@@ -230,7 +237,7 @@
 
 <main class="scoring-wrapper">
   <!-- Congress B Side -->
-  <section id="congress-card" class="team-panel active-turn">
+  <section id="congress-card" class="team-panel active-turn" onclick="setActiveSide('congress')">
     <div class="leg-badge">Legs Won: <span id="congress-legs">0</span></div>
     <h2>Congress B</h2>
     <div id="current-player-display" class="player-name-label">Player 1</div>
@@ -240,7 +247,7 @@
   </section>
 
   <!-- Opponents Side -->
-  <section id="opponent-card" class="team-panel">
+  <section id="opponent-card" class="team-panel" onclick="setActiveSide('opponents')">
     <div class="leg-badge">Legs Won: <span id="opponent-legs">0</span></div>
     <h2 id="opponent-team-display">Opponents</h2>
     <div id="current-opponent-display" class="player-name-label">Opponent</div>

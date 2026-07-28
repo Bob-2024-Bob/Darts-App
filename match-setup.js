@@ -39,6 +39,7 @@ function loadMatchSetup() {
 
 function saveMatchSetup() {
   localStorage.setItem("matchSetup", JSON.stringify(matchSetup));
+  localStorage.setItem("isCasualMode", "false");
 }
 
 /* ============================================================

@@ -163,6 +163,24 @@
 </header>
 
 <main class="setup-wrapper">
+    <!-- Casual / Friendly Match Setup Section -->
+<div class="setup-card casual-card" style="background: #1e293b; border: 2px dashed #38bdf8; padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem;">
+  <h2 style="color: #38bdf8; margin-top: 0;">🎯 Quick Play / Friendly Mode</h2>
+  <p style="color: #94a3b8; font-size: 0.95rem;">Play a quick game without recording any official player stats or league averages.</p>
+  
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+    <input type="text" id="casual-p1" placeholder="Player 1 Name" style="flex: 1; padding: 0.6rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff;">
+    <input type="text" id="casual-p2" placeholder="Player 2 Name" style="flex: 1; padding: 0.6rem; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff;">
+  </div>
+    <button onclick="launchCasual()" style="width: 100%; padding: 0.85rem; background: #38bdf8; color: #0f172a; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+    START CASUAL GAME 🎯
+  </button>
+</div>
+
+</main>
+
+<main class="setup-wrapper">
+
   <!-- Team Roster Management -->
   <section class="roster-card">
     <div class="roster-title">Congress B Roster Management</div>
@@ -172,6 +190,16 @@
     </div>
     <div id="player-chips-container" class="player-tags"></div>
   </section>
+
+
+
+<script>
+function launchCasual() {
+  var p1 = document.getElementById("casual-p1").value || "Player 1";
+  var p2 = document.getElementById("casual-p2").value || "Player 2";
+  startCasualMatch(p1, p2);
+}
+</script>
 
   <!-- Match Fixtures & Format Setup -->
   <section class="roster-card">
@@ -204,6 +232,7 @@
 
 <script src="app.js"></script>
 <script>
+  
   // Format Presets
   var formatPresets = {
     full: [
@@ -402,15 +431,22 @@
     renderScheduleForm();
   }
 
-  function saveSchedule() {
-    var finalSchedule = captureCurrentInputs();
-    var oppTeamName = document.getElementById("opponent-team-name").value.trim() || "Opponent Team";
+function saveSchedule() {
+  // 1. Explicitly turn off Casual Mode & clear temporary casual names
+  localStorage.setItem("isCasualMode", "false");
+  localStorage.removeItem("skipBullOff");
+  localStorage.removeItem("casualPlayer1");
+  localStorage.removeItem("casualPlayer2");
 
-    localStorage.setItem("matchSchedule", JSON.stringify(finalSchedule));
-    localStorage.setItem("opponentTeamName", oppTeamName);
+  // 2. Your existing official schedule capturing logic
+  var finalSchedule = captureCurrentInputs();
+  var oppTeamName = document.getElementById("opponent-team-name").value.trim() || "Opponent Team";
 
-    alert("Match Schedule & Opponent Saved!");
-  }
+  localStorage.setItem("matchSchedule", JSON.stringify(finalSchedule));
+  localStorage.setItem("opponentTeamName", oppTeamName);
+
+  alert("Match Schedule & Opponent Saved!");
+}
 
   document.addEventListener("DOMContentLoaded", function() {
     var savedFormat = localStorage.getItem("selectedFormatKey") || "full";
@@ -420,6 +456,37 @@
     renderRosterChips();
     renderScheduleForm();
   });
+
 </script>
+</body>
+</html>
+<script>
+    // Paste the launchCasual() function right here!
+    function launchCasual() {
+      var p1Input = document.getElementById("casual-p1");
+      var p2Input = document.getElementById("casual-p2");
+      
+      var p1 = (p1Input && p1Input.value.trim()) ? p1Input.value.trim() : "Player 1";
+      var p2 = (p2Input && p2Input.value.trim()) ? p2Input.value.trim() : "Player 2";
+      
+      if (typeof startCasualMatch === "function") {
+        startCasualMatch(p1, p2);
+      } else {
+        localStorage.setItem("isCasualMode", "true");
+        localStorage.setItem("opponentTeamName", p2);
+        var casualSchedule = [{ title: "Casual Game", homePlayer: p1, awayPlayer: p2 }];
+        localStorage.setItem("matchSchedule", JSON.stringify(casualSchedule));
+        localStorage.setItem("currentMatchIndex", "0");
+        localStorage.setItem("congressLegs", "0");
+        localStorage.setItem("opponentLegs", "0");
+        localStorage.setItem("congressScore", "501");
+        localStorage.setItem("opponentScore", "501");
+        localStorage.setItem("turnHistory", "[]");
+        localStorage.setItem("activeSide", "congress");
+        window.location.href = "index.html";
+      }
+    }
+
+  </script>
 </body>
 </html>
