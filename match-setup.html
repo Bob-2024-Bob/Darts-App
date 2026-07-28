@@ -193,9 +193,9 @@
 
 
 
-<script>
 function launchCasual() {
   var p1 = document.getElementById("casual-p1").value || "Player 1";
+</body>
   var p2 = document.getElementById("casual-p2").value || "Player 2";
   startCasualMatch(p1, p2);
 }
@@ -457,40 +457,35 @@ function saveSchedule() {
     renderScheduleForm();
   });
 
-</script>
-</body>
-</html>
-<script>
-    // Paste the launchCasual() function right here!
-    function launchCasual() {
-      var p1Input = document.getElementById("casual-p1");
-      var p2Input = document.getElementById("casual-p2");
-      
-      var p1 = (p1Input && p1Input.value.trim()) ? p1Input.value.trim() : "Player 1";
-      var p2 = (p2Input && p2Input.value.trim()) ? p2Input.value.trim() : "Player 2";
-      
-      if (typeof startCasualMatch === "function") {
-        startCasualMatch(p1, p2);
-      } else {
-        localStorage.setItem("isCasualMode", "true");
-        localStorage.setItem("opponentTeamName", p2);
-        var casualSchedule = [{ title: "Casual Game", homePlayer: p1, awayPlayer: p2 }];
-        localStorage.setItem("matchSchedule", JSON.stringify(casualSchedule));
-        localStorage.setItem("currentMatchIndex", "0");
-        localStorage.setItem("congressLegs", "0");
-        localStorage.setItem("opponentLegs", "0");
-        localStorage.setItem("congressScore", "501");
-        localStorage.setItem("opponentScore", "501");
-        localStorage.setItem("turnHistory", "[]");
-        localStorage.setItem("activeSide", "congress");
-        window.location.href = "index.html";
-      }
+  function launchCasual() {
+    var p1Input = document.getElementById("casual-p1");
+    var p2Input = document.getElementById("casual-p2");
+
+    var p1 = (p1Input && p1Input.value.trim()) ? p1Input.value.trim() : "Player 1";
+    var p2 = (p2Input && p2Input.value.trim()) ? p2Input.value.trim() : "Player 2";
+
+    if (typeof startCasualMatch === "function") {
+      startCasualMatch(p1, p2);
+    } else {
+      localStorage.setItem("isCasualMode", "true");
+      localStorage.setItem("opponentTeamName", p2);
+      var casualSchedule = [{ title: "Casual Game", homePlayer: p1, awayPlayer: p2 }];
+      localStorage.setItem("matchSchedule", JSON.stringify(casualSchedule));
+      localStorage.setItem("currentMatchIndex", "0");
+      localStorage.setItem("congressLegs", "0");
+      localStorage.setItem("opponentLegs", "0");
+      localStorage.setItem("congressScore", "501");
+      localStorage.setItem("opponentScore", "501");
+      localStorage.setItem("turnHistory", "[]");
+      localStorage.setItem("activeSide", "congress");
+      window.location.href = "index.html";
     }
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="app.js">
-  
-  </script>
+  }
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
