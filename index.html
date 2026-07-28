@@ -1,95 +1,292 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Congress B Darts - Scoring</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8" />
+  <title>Darts Match Scorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Mobile/Tablet Layout - Prominent Top Score Boxes */
+    .scoring-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      max-width: 900px;
+      margin: 1rem auto;
+      padding: 0 0.75rem;
+    }
 
+    .team-panel {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 16px;
+      padding: 1.5rem 1rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .team-panel.active-turn {
+      border-color: #22c55e;
+      box-shadow: 0 0 22px rgba(34, 197, 94, 0.35);
+    }
+
+    .team-panel h2 {
+      margin: 0.2rem 0;
+      font-size: 1.35rem;
+      color: #f8fafc;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .leg-badge {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+    }
+
+    .leg-badge span {
+      color: #22c55e;
+      font-size: 1.1rem;
+      margin-left: 0.25rem;
+    }
+
+    .player-name-label {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+      text-align: center;
+    }
+
+    /* Prominent Score Focus */
+    .score-num {
+      font-size: 5.5rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 0.2rem 0;
+      line-height: 1;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+      letter-spacing: -1px;
+    }
+
+    .checkout-box {
+      min-height: 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .history-list {
+      width: 100%;
+      max-height: 110px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+      border-top: 1px solid #334155;
+      padding-top: 0.5rem;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      padding: 0.35rem 0.65rem;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .history-item button {
+      background: #334155;
+      color: #cbd5e1;
+      border: none;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    /* Keypad Panel (Underneath) */
+    .keypad-panel {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      align-items: center;
+      max-width: 460px;
+      width: 100%;
+      margin: 0.5rem auto 0;
+    }
+
+    .display-input {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 2.2rem;
+      text-align: center;
+      background: #0f172a;
+      border: 2px solid #334155;
+      color: #fff;
+      border-radius: 10px;
+      font-weight: bold;
+      box-sizing: border-box;
+    }
+
+    .keypad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .key-btn {
+      padding: 1.1rem;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      background: #334155;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .key-btn:active { background: #475569; }
+    .key-btn.clear-btn { background: #ef4444; color: #fff; }
+    .key-btn.enter-btn { background: #22c55e; color: #052e16; }
+
+    .reset-night-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: #991b1b;
+      color: #fff;
+      border: none;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 0.25rem;
+    }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(10, 15, 26, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+    .bull-btn { flex: 1; padding: 0.85rem; font-size: 1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+    .bull-btn.congress-btn { background: #22c55e; color: #052e16; }
+    .bull-btn.opponent-btn { background: #ef4444; color: #450a0a; }
+
+    /* Responsive scaling for mobile devices */
+    @media (max-width: 500px) {
+      .score-num { font-size: 4.2rem; }
+      .team-panel h2 { font-size: 1.1rem; }
+      .player-name-label { font-size: 1rem; }
+      .key-btn { padding: 0.9rem; font-size: 1.2rem; }
+      .team-panel { padding: 1rem 0.5rem 0.75rem; }
+    }
+  </style>
+</head>
 <body>
 
-<nav class="top-nav">
-  <div class="nav-title">Congress B Darts</div>
-  <div class="nav-links">
-    <a href="index.html">Scoring</a>
-    <a href="history.html">History</a>
+<header class="app-header">
+  <nav class="top-nav">
+    <a href="match-setup.html">Setup</a>
+    <a href="index.html" class="active">Scoring</a>
     <a href="stats.html">Stats</a>
-  </div>
-</nav>
+  </nav>
+  <h1>DARTS MATCH SCORER</h1>
+</header>
 
-<h1>Live Scoring</h1>
+<main class="scoring-wrapper">
+  <!-- Congress B Side -->
+  <section id="congress-card" class="team-panel active-turn">
+    <div class="leg-badge">Legs Won: <span id="congress-legs">0</span></div>
+    <h2>Congress B</h2>
+    <div id="current-player-display" class="player-name-label">Player 1</div>
+    <div id="congress-score" class="score-num">501</div>
+    <div id="congress-checkout" class="checkout-box"></div>
+    <div id="congress-history" class="history-list"></div>
+  </section>
 
-<div class="scoreboard">
-  <div class="team-card" id="team-0-card">
-    <h2 id="t0-evening-name">Congress B</h2>
-    <p>Legs Won: <span id="t0-evening-score">0</span></p>
-  </div>
+  <!-- Opponents Side -->
+  <section id="opponent-card" class="team-panel">
+    <div class="leg-badge">Legs Won: <span id="opponent-legs">0</span></div>
+    <h2 id="opponent-team-display">Opponents</h2>
+    <div id="current-opponent-display" class="player-name-label">Opponent</div>
+    <div id="opponent-score" class="score-num">501</div>
+    <div id="opponent-checkout" class="checkout-box"></div>
+    <div id="opponent-history" class="history-list"></div>
+  </section>
 
-  <div class="team-card" id="team-1-card">
-    <h2 id="t1-evening-name">Opponents</h2>
-    <p>Legs Won: <span id="t1-evening-score">0</span></p>
-  </div>
-</div>
+  <!-- Keypad Panel (Underneath) -->
+  <section class="keypad-panel">
+    <input type="text" id="score-input-display" class="display-input" placeholder="0" readonly />
 
-<div class="scoreboard">
-  <div class="team-card">
-    <h3 id="t0-name">Congress B</h3>
-    <p>Player: <span id="t0-player-indicator">Player 1</span></p>
-    <p>Score: <span id="t0-score">501</span></p>
-    <p>Checkout: <span id="t0-checkout"></span></p>
-    <p>Legs: <span id="t0-legs">0</span></p>
-  </div>
+    <div class="keypad-grid">
+      <button class="key-btn" onclick="appendKey('1')">1</button>
+      <button class="key-btn" onclick="appendKey('2')">2</button>
+      <button class="key-btn" onclick="appendKey('3')">3</button>
 
-  <div class="team-card">
-    <h3 id="t1-name">Opponents</h3>
-    <p>Player: <span id="t1-player-indicator">Opponent 1</span></p>
-    <p>Score: <span id="t1-score">501</span></p>
-    <p>Checkout: <span id="t1-checkout"></span></p>
-    <p>Legs: <span id="t1-legs">0</span></p>
-  </div>
-</div>
+      <button class="key-btn" onclick="appendKey('4')">4</button>
+      <button class="key-btn" onclick="appendKey('5')">5</button>
+      <button class="key-btn" onclick="appendKey('6')">6</button>
 
-<h2>Score Entered: <span id="input-buffer">0</span></h2>
+      <button class="key-btn" onclick="appendKey('7')">7</button>
+      <button class="key-btn" onclick="appendKey('8')">8</button>
+      <button class="key-btn" onclick="appendKey('9')">9</button>
 
-<div class="keypad">
-  <button class="btn-num" data-val="1">1</button>
-  <button class="btn-num" data-val="2">2</button>
-  <button class="btn-num" data-val="3">3</button>
-  <button class="btn-num" data-val="4">4</button>
-  <button class="btn-num" data-val="5">5</button>
-  <button class="btn-num" data-val="6">6</button>
-  <button class="btn-num" data-val="7">7</button>
-  <button class="btn-num" data-val="8">8</button>
-  <button class="btn-num" data-val="9">9</button>
-  <button class="btn-num" data-val="0">0</button>
-</div>
+      <button class="key-btn clear-btn" onclick="clearKeypad()">C</button>
+      <button class="key-btn" onclick="appendKey('0')">0</button>
+      <button class="key-btn enter-btn" onclick="submitKeypadScore()">↵</button>
+    </div>
 
-<button id="btn-clear" class="btn-primary">Clear</button>
-<button id="btn-enter" class="btn-primary">Enter Score</button>
-<button id="btn-new-match" class="btn-primary">New Match Setup</button>
+    <button class="reset-night-btn" onclick="resetMatchScores()">RESET MATCH</button>
+  </section>
+</main>
 
-<!-- Setup Modal -->
-<div class="modal-overlay hidden" id="setup-modal">
-  <div class="modal-box">
-    <h2>Match Setup</h2>
-
-    <label>Home Team</label>
-    <input type="text" id="setup-t0-name" value="Congress B">
-
-    <label>Away Team</label>
-    <input type="text" id="setup-t1-name" value="Opponents">
-
-    <label>Home Player</label>
-    <input type="text" id="setup-p0-name" value="Player 1">
-
-    <label>Away Player</label>
-    <input type="text" id="setup-p1-name" value="Opponent 1">
-
-    <button id="btn-save-setup" class="btn-primary">Save & Start Match</button>
+<!-- Bull Up Modal -->
+<div id="bull-up-modal" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <h2>🎯 Deciding Leg - Bull Up!</h2>
+    <p>Select who won the throw at the bull to start Leg 3:</p>
+    <div class="modal-actions">
+      <button class="bull-btn congress-btn" onclick="selectBullWinner('congress')">Congress B</button>
+      <button id="bull-modal-opp-btn" class="bull-btn opponent-btn" onclick="selectBullWinner('opponents')">Opponent</button>
+    </div>
   </div>
 </div>
 
-<script type="module" src="app.js"></script>
-
+<script src="app.js"></script>
 </body>
 </html>

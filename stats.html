@@ -1,42 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Congress B Stats</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Darts Team App – Congress B Player Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .stats-container {
+      max-width: 1000px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Form Card for Adding Players */
+    .add-player-card {
+      background: var(--panel-bg);
+      border-radius: 8px;
+      padding: 1.25rem;
+      border: 1px solid #2a354d;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .add-player-card input {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: 1px solid #2a354d;
+      background: #171f2d;
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .add-player-btn {
+      background: var(--active-border);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Table Styling */
+    .table-wrapper {
+      background: var(--panel-bg);
+      border-radius: 8px;
+      border: 1px solid #2a354d;
+      overflow-x: auto;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      min-width: 650px;
+    }
+
+    .stats-table th, 
+    .stats-table td {
+      padding: 0.85rem 0.5rem;
+      border-bottom: 1px solid #2a354d;
+    }
+
+    .stats-table th {
+      background: #171f2d;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stats-table td.player-name-cell {
+      text-align: left;
+      padding-left: 1rem;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .stats-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .delete-player-btn {
+      background: transparent;
+      color: var(--danger-color);
+      border: 1px solid var(--danger-color);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .delete-player-btn:hover {
+      background: var(--danger-color);
+      color: #fff;
+    }
+  </style>
 </head>
 
 <body>
-
-<nav class="top-nav">
-  <div class="nav-title">Congress B Darts</div>
-  <div class="nav-links">
+<header class="app-header">
+  <nav class="top-nav">
+    <a href="match-setup.html">Setup</a>
     <a href="index.html">Scoring</a>
-    <a href="history.html">History</a>
-    <a href="stats.html">Stats</a>
-  </div>
-</nav>
+    <a href="stats.html" class="active">Stats</a>
+  </nav>
+  <h1>CONGRESS B PLAYER STATS</h1>
+</header>
 
-<h1>Congress B Player Stats</h1>
+<main class="stats-container">
 
-<section class="panel">
-  <table class="stats-table">
-    <thead>
-      <tr>
-        <th>Player</th>
-        <th>Avg</th>
-        <th>100+</th>
-        <th>180s</th>
-        <th>High Out</th>
-        <th>Matches</th>
-        <th>Legs (W/L)</th>
-      </tr>
-    </thead>
-    <tbody id="team-stats-list"></tbody>
-  </table>
-</section>
+  <!-- Add New Player Form -->
+  <section class="add-player-card">
+    <input type="text" id="new-player-name" placeholder="Enter new player name..." />
+    <button class="add-player-btn" onclick="addPlayer()">+ Add Player</button>
+  </section>
 
-<script type="module" src="app.js"></script>
+  <!-- Player Stats Table -->
+  <section class="table-wrapper">
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th style="text-align: left; padding-left: 1rem;">Player</th>
+          <th>3-Dart Avg</th>
+          <th>100+</th>
+          <th>140+</th>
+          <th>180s</th>
+          <th>Legs (W/L)</th>
+          <th>Checkout %</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="player-table-body">
+        <!-- Rendered dynamically via JavaScript -->
+      </tbody>
+    </table>
+  </section>
 
+</main>
+
+<script src="app.js"></script>
+<script>
+  // Default roster if LocalStorage is empty
+  let congressPlayers = JSON.parse(localStorage.getItem("congressPlayers") || "[]");
+
+  if (congressPlayers.length === 0) {
+    congressPlayers = [
+      { name: "Player 1", totalScore: 0, dartsThrown: 0, hundreds: 0, oneForties: 0, oneEighties: 0, legsWon: 0, legsLost: 0, checkoutsHit: 0, checkoutAttempts: 0 },
+      { name: "Player 2", totalScore: 0, dartsThrown: 0, hundreds: 0, oneForties: 0, oneEighties: 0, legsWon: 0, legsLost: 0, checkoutsHit: 0, checkoutAttempts: 0 }
+    ];
+    savePlayers();
+  }
+
+  function savePlayers() {
+    localStorage.setItem("congressPlayers", JSON.stringify(congressPlayers));
+  }
+
+  function renderPlayerTable() {
+    const tbody = document.getElementById("player-table-body");
+    tbody.innerHTML = "";
+
+    congressPlayers.forEach((p, idx) => {
+      const avg = p.dartsThrown > 0 ? ((p.totalScore / p.dartsThrown) * 3).toFixed(1) : "0.0";
+      const coPct = p.checkoutAttempts > 0 ? ((p.checkoutsHit / p.checkoutAttempts) * 100).toFixed(1) + "%" : "0%";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="player-name-cell">${p.name}</td>
+        <td>${avg}</td>
+        <td>${p.hundreds}</td>
+        <td>${p.oneForties}</td>
+        <td>${p.oneEighties}</td>
+        <td>${p.legsWon} / ${p.legsLost}</td>
+        <td>${coPct}</td>
+        <td>
+          <button class="delete-player-btn" onclick="removePlayer(${idx})">Remove</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function addPlayer() {
+    const input = document.getElementById("new-player-name");
+    const name = input.value.trim();
+
+    if (!name) return;
+
+    congressPlayers.push({
+      name: name,
+      totalScore: 0,
+      dartsThrown: 0,
+      hundreds: 0,
+      oneForties: 0,
+      oneEighties: 0,
+      legsWon: 0,
+      legsLost: 0,
+      checkoutsHit: 0,
+      checkoutAttempts: 0
+    });
+
+    savePlayers();
+    renderPlayerTable();
+    input.value = "";
+  }
+
+  function removePlayer(index) {
+    if (confirm(`Are you sure you want to remove ${congressPlayers[index].name}?`)) {
+      congressPlayers.splice(index, 1);
+      savePlayers();
+      renderPlayerTable();
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", renderPlayerTable);
+</script>
 </body>
 </html>

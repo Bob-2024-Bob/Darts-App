@@ -1,322 +1,460 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+/* ============================================================
+   GLOBAL STATE & PERSISTENCE
+   ============================================================ */
+function getValidScore(key) {
+  var val = parseInt(localStorage.getItem(key), 10);
+  return isNaN(val) || val <= 0 ? 501 : val;
+}
 
-// Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyBo0Xq73bn7LeS0dFSkvpfpbbU0pXp80Uc",
-  authDomain: "team-darts-app.firebaseapp.com",
-  projectId: "team-darts-app",
-  storageBucket: "team-darts-app.firebasestorage.app",
-  messagingSenderId: "180812615155",
-  appId: "1:180812615155:web:38cc89978f5f4a4ae6d686",
-  measurementId: "G-P8SHGGVFS4"
+var congressLegs = parseInt(localStorage.getItem("congressLegs") || "0", 10);
+var opponentLegs = parseInt(localStorage.getItem("opponentLegs") || "0", 10);
+if (isNaN(congressLegs)) congressLegs = 0;
+if (isNaN(opponentLegs)) opponentLegs = 0;
+
+var activeSide = localStorage.getItem("activeSide") || "congress";
+var currentMatchIndex = parseInt(localStorage.getItem("currentMatchIndex") || "0", 10);
+if (isNaN(currentMatchIndex)) currentMatchIndex = 0;
+
+var congressScore = getValidScore("congressScore");
+var opponentScore = getValidScore("opponentScore");
+
+var turnHistory = JSON.parse(localStorage.getItem("scoreHistory") || "[]");
+if (!Array.isArray(turnHistory)) turnHistory = [];
+
+var matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
+
+var currentLegStats = JSON.parse(localStorage.getItem("currentLegStats") || JSON.stringify({
+  totalScore: 0,
+  dartsThrown: 0,
+  hundreds: 0,
+  oneForties: 0,
+  oneEighties: 0,
+  checkoutAttempts: 0
+}));
+
+/* ============================================================
+   CHECKOUT TABLE
+   ============================================================ */
+var checkoutTable = {
+  170: "T20 T20 Bull", 167: "T20 T19 Bull", 164: "T20 T18 Bull", 161: "T20 T17 Bull",
+  160: "T20 T20 D20",  158: "T20 T20 D19",  157: "T20 T19 D20",  156: "T20 T20 D18",
+  155: "T20 T19 D19",  154: "T20 T18 D20",  153: "T20 T19 D18",  152: "T20 T20 D16",
+  151: "T20 T17 D20",  150: "T20 T18 D18",  149: "T20 T19 D16",  148: "T20 T16 D20",
+  147: "T20 T17 D18",  146: "T20 T18 D16",  145: "T20 T15 D20",  144: "T20 T20 D12",
+  143: "T20 T17 D16",  142: "T20 T14 D20",  141: "T20 T15 D18",  140: "T20 T20 D10",
+  139: "T20 T13 D20",  138: "T20 T18 D12",  137: "T19 T16 D16",  136: "T20 T20 D8",
+  135: "T20 T15 D15",  134: "T20 T14 D16",  133: "T20 T19 D8",   132: "T20 T16 D12",
+  131: "T20 T13 D16",  130: "T20 T18 D8",   129: "T19 T16 D12",  128: "T18 T14 D16",
+  127: "T20 T17 D8",   126: "T19 T19 D6",   125: "25 T20 Bull",  124: "T20 T16 D8",
+  123: "T19 T16 D8",   122: "T18 T18 D7",   121: "T20 T15 D8",   120: "T20 20 D20",
+  119: "T19 12 D22",   118: "T20 18 D20",   117: "T20 17 D20",   116: "T20 16 D20",
+  115: "T20 15 D20",   114: "T20 14 D20",   113: "T19 16 D20",   112: "T20 12 D20",
+  111: "T20 19 D16",   110: "T20 10 D20",   109: "T19 12 D20",   108: "T20 16 D16",
+  107: "T19 10 D20",   106: "T20 10 D18",   105: "T19 16 D16",   104: "T20 12 D16",
+  103: "T19 10 D18",   102: "T20 10 D16",   101: "T19 12 D16",   100: "T20 D20",
+  99: "T19 10 D16",    98: "T20 D19",       97: "T19 D20",       96: "T20 D18",
+  95: "T19 D19",       94: "T18 D20",       93: "T19 D18",       92: "T20 D16",
+  91: "T17 D20",       90: "T20 D15",       89: "T19 D16",       88: "T16 D20",
+  87: "T17 D18",       86: "T18 D16",       85: "T15 D20",       84: "T20 D12",
+  83: "T17 D16",       82: "T14 D20",       81: "T19 D12",       80: "T20 D10",
+  79: "T13 D20",       78: "T18 D12",       77: "T15 D16",       76: "T20 D8",
+  75: "T17 D12",       74: "T14 D16",       73: "T19 D8",        72: "T16 D12",
+  71: "T13 D16",       70: "T18 D8",        69: "T15 D12",       68: "T16 D10",
+  67: "T17 D8",        66: "T10 D18",       65: "25 D20",        64: "D32",
+  63: "T13 D12",       62: "T10 D16",       61: "T15 D8",        60: "20 D20",
+  59: "19 D20",        58: "18 D20",        57: "17 D20",        56: "16 D20",
+  55: "15 D20",        54: "14 D20",        53: "13 D20",        52: "12 D20",
+  51: "11 D20",        50: "Bull",          49: "9 D20",         48: "16 D16",
+  47: "15 D16",        46: "14 D16",        45: "13 D16",        44: "12 D16",
+  43: "11 D16",        42: "10 D16",        41: "9 D16",         40: "D20",
+  38: "D19",           36: "D18",           34: "D17",           32: "D16",
+  30: "D15",           28: "D14",           26: "D13",           24: "D12",
+  22: "D11",           20: "D10",           18: "D9",            16: "D8",
+  14: "D7",            12: "D6",            10: "D5",            8: "D4",
+  6: "D3",             4: "D2",             2: "D1"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const matchesRef = collection(db, "matches");
+function getCheckoutText(score) {
+  return checkoutTable[score] || "";
+}
 
-const MY_TEAM_NAME = "Congress B";
+function saveGameState() {
+  localStorage.setItem("congressLegs", congressLegs);
+  localStorage.setItem("opponentLegs", opponentLegs);
+  localStorage.setItem("activeSide", activeSide);
+  localStorage.setItem("currentMatchIndex", currentMatchIndex);
+  localStorage.setItem("congressScore", congressScore);
+  localStorage.setItem("opponentScore", opponentScore);
+  localStorage.setItem("scoreHistory", JSON.stringify(turnHistory));
+  localStorage.setItem("currentLegStats", JSON.stringify(currentLegStats));
+  localStorage.setItem("matchSchedule", JSON.stringify(matchSchedule));
+}
 
-// Checkout suggestions
-const checkouts = {
-  170: "T20 T20 Bull", 167: "T20 T19 Bull", 164: "T20 T18 Bull", 160: "T20 T20 D20",
-  100: "T20 D20", 80: "T20 D10", 60: "20 D20", 40: "D20", 32: "D16"
-};
+/* ============================================================
+   MATCH SCHEDULE REORDERING LOGIC
+   ============================================================ */
+function moveMatchUp(index) {
+  if (index <= 0 || index >= matchSchedule.length) return;
+  
+  var temp = matchSchedule[index];
+  matchSchedule[index] = matchSchedule[index - 1];
+  matchSchedule[index - 1] = temp;
 
-// Global State
-let team1 = { name: MY_TEAM_NAME, legs: 0 };
-let team2 = { name: "Opponents", legs: 0 };
-
-let activePlayer = 0;
-let starterPlayer = 0;
-
-const players = [
-  { name: "Player 1", teamIndex: 0, score: 501, legs: 0, points: 0, darts: 0, tonPlus: 0, tons180: 0, highCheckout: 0 },
-  { name: "Opponent 1", teamIndex: 1, score: 501, legs: 0, points: 0, darts: 0, tonPlus: 0, tons180: 0, highCheckout: 0 }
-];
-
-let inputBuffer = "";
-
-/* ------------------------------
-   SETUP MODAL
------------------------------- */
-const setupModal = document.getElementById("setup-modal");
-
-document.getElementById("btn-save-setup").addEventListener("click", () => {
-  team1.name = document.getElementById("setup-t0-name").value.trim() || MY_TEAM_NAME;
-  team2.name = document.getElementById("setup-t1-name").value.trim() || "Opponents";
-  players[0].name = document.getElementById("setup-p0-name").value.trim() || "Player 1";
-  players[1].name = document.getElementById("setup-p1-name").value.trim() || "Opponent 1";
-
-  // Reset stats
-  players.forEach(p => {
-    p.score = 501;
-    p.legs = 0;
-    p.points = 0;
-    p.darts = 0;
-    p.tonPlus = 0;
-    p.tons180 = 0;
-    p.highCheckout = 0;
-  });
-
-  team1.legs = 0;
-  team2.legs = 0;
-
-  activePlayer = 0;
-  starterPlayer = 0;
-
-  setupModal.classList.add("hidden");
-  updateUI();
-});
-
-document.getElementById("btn-new-match").addEventListener("click", () => {
-  setupModal.classList.remove("hidden");
-});
-
-/* ------------------------------
-   KEYPAD
------------------------------- */
-document.querySelectorAll(".btn-num").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (inputBuffer.length < 3) {
-      inputBuffer += btn.dataset.val;
-      document.getElementById("input-buffer").innerText = inputBuffer;
-    }
-  });
-});
-
-document.getElementById("btn-clear").addEventListener("click", () => {
-  inputBuffer = "";
-  document.getElementById("input-buffer").innerText = "0";
-});
-
-document.getElementById("btn-enter").addEventListener("click", () => {
-  const turnScore = parseInt(inputBuffer, 10) || 0;
-
-  if (turnScore > 180) {
-    alert("Max turn score is 180!");
-    inputBuffer = "";
-    document.getElementById("input-buffer").innerText = "0";
-    return;
+  if (currentMatchIndex === index) {
+    currentMatchIndex--;
+  } else if (currentMatchIndex === index - 1) {
+    currentMatchIndex++;
   }
 
-  processTurn(turnScore);
-  inputBuffer = "";
-  document.getElementById("input-buffer").innerText = "0";
+  saveGameState();
+  updateUI();
+}
+
+function moveMatchDown(index) {
+  if (index < 0 || index >= matchSchedule.length - 1) return;
+
+  var temp = matchSchedule[index];
+  matchSchedule[index] = matchSchedule[index + 1];
+  matchSchedule[index + 1] = temp;
+
+  if (currentMatchIndex === index) {
+    currentMatchIndex++;
+  } else if (currentMatchIndex === index + 1) {
+    currentMatchIndex--;
+  }
+
+  saveGameState();
+  updateUI();
+}
+
+/* ============================================================
+   KEYPAD INPUT
+   ============================================================ */
+function appendKey(num) {
+  var input = document.getElementById("score-input-display");
+  if (!input) return;
+  if (input.value.length < 3) {
+    input.value += num;
+  }
+}
+
+function clearKeypad() {
+  var input = document.getElementById("score-input-display");
+  if (input) input.value = "";
+}
+
+function submitKeypadScore() {
+  var input = document.getElementById("score-input-display");
+  if (!input || input.value === "") return;
+  var score = parseInt(input.value, 10);
+  handleScoreInput(score);
+  input.value = "";
+}
+
+document.addEventListener("keydown", function(e) {
+  var input = document.getElementById("score-input-display");
+  if (!input) return;
+
+  if (e.key >= "0" && e.key <= "9") {
+    appendKey(e.key);
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    submitKeypadScore();
+  } else if (e.key === "Backspace" || e.key === "Delete") {
+    e.preventDefault();
+    clearKeypad();
+  }
 });
 
-/* ------------------------------
-   PROCESS TURN
------------------------------- */
-function processTurn(pts) {
-  const p = players[activePlayer];
-  const remaining = p.score - pts;
+/* ============================================================
+   SCORING LOGIC
+   ============================================================ */
+function handleScoreInput(score) {
+  if (isNaN(score) || score < 0 || score > 180) return;
 
-  if (remaining < 0 || remaining === 1) {
-    alert(`${p.name} BUSTED!`);
-    p.darts += 3;
-  } else if (remaining === 0) {
-    p.legs += 1;
-    p.points += pts;
-    p.darts += 3;
+  var currentMatch = matchSchedule[currentMatchIndex] || {};
+  var currentPlayerName = currentMatch.homePlayer || "Congress Player";
 
-    if (pts >= 100 && pts < 180) p.tonPlus++;
-    if (pts === 180) p.tons180++;
+  if (activeSide === "congress") {
+    if (score > congressScore || congressScore - score === 1) {
+      turnHistory.push({ id: Date.now(), side: "congress", score: 0, bust: true });
+      activeSide = "opponents";
+      saveGameState();
+      updateUI();
+      return;
+    }
 
-    if (pts > p.highCheckout) p.highCheckout = pts;
+    congressScore -= score;
+    turnHistory.push({ id: Date.now(), side: "congress", score: score, bust: false });
 
-    if (p.teamIndex === 0) team1.legs++;
-    else team2.legs++;
+    currentLegStats.totalScore += score;
+    currentLegStats.dartsThrown += 3;
 
-    alert(`${p.name} won the leg with a ${pts} checkout!`);
-    saveLegResult(p.name, p.teamIndex === 0 ? team1.name : team2.name);
-    resetLeg();
-    return;
+    if (score === 180) currentLegStats.oneEighties++;
+    else if (score >= 140) currentLegStats.oneForties++;
+    else if (score >= 100) currentLegStats.hundreds++;
+
+    if (congressScore <= 170) currentLegStats.checkoutAttempts++;
+
+    if (congressScore === 0) {
+      congressLegs++;
+      updatePlayerStatsOnLegEnd(currentPlayerName, true);
+      checkLegProgression("congress");
+      return;
+    }
+
+    activeSide = "opponents";
+
   } else {
-    p.score = remaining;
-    p.points += pts;
-    p.darts += 3;
+    if (score > opponentScore || opponentScore - score === 1) {
+      turnHistory.push({ id: Date.now(), side: "opponents", score: 0, bust: true });
+      activeSide = "congress";
+      saveGameState();
+      updateUI();
+      return;
+    }
 
-    if (pts >= 100 && pts < 180) p.tonPlus++;
-    if (pts === 180) p.tons180++;
+    opponentScore -= score;
+    turnHistory.push({ id: Date.now(), side: "opponents", score: score, bust: false });
+
+    if (opponentScore === 0) {
+      opponentLegs++;
+      updatePlayerStatsOnLegEnd(currentPlayerName, false);
+      checkLegProgression("opponents");
+      return;
+    }
+
+    activeSide = "congress";
   }
 
-  activePlayer = activePlayer === 0 ? 1 : 0;
+  saveGameState();
   updateUI();
 }
 
-/* ------------------------------
-   UPDATE UI
------------------------------- */
+/* ============================================================
+   STAT TRACKING (Singles & Reserve Only)
+   ============================================================ */
+function updatePlayerStatsOnLegEnd(playerName, won) {
+  if (!playerName) return;
+
+  var currentMatch = matchSchedule[currentMatchIndex] || {};
+  var matchType = (currentMatch.title || currentMatch.type || "").toLowerCase();
+
+  if (matchType.includes("double") || playerName.includes("&")) {
+    return;
+  }
+
+  var players = JSON.parse(localStorage.getItem("congressPlayers") || "[]");
+  var targetName = playerName.trim().toLowerCase();
+
+  players.forEach(function(player) {
+    if (player.name.trim().toLowerCase() === targetName) {
+      player.totalScore += currentLegStats.totalScore;
+      player.dartsThrown += currentLegStats.dartsThrown;
+      player.hundreds += currentLegStats.hundreds;
+      player.oneForties += currentLegStats.oneForties;
+      player.oneEighties += currentLegStats.oneEighties;
+      player.checkoutAttempts += currentLegStats.checkoutAttempts;
+
+      if (won) {
+        player.legsWon = (player.legsWon || 0) + 1;
+        player.checkoutsHit = (player.checkoutsHit || 0) + 1;
+      } else {
+        player.legsLost = (player.legsLost || 0) + 1;
+      }
+    }
+  });
+
+  localStorage.setItem("congressPlayers", JSON.stringify(players));
+}
+
+function checkLegProgression(winnerSide) {
+  congressScore = 501;
+  opponentScore = 501;
+  turnHistory = [];
+  currentLegStats = { totalScore: 0, dartsThrown: 0, hundreds: 0, oneForties: 0, oneEighties: 0, checkoutAttempts: 0 };
+
+  var totalLegsInMatch = (congressLegs + opponentLegs) % 3;
+
+  if (totalLegsInMatch === 2) {
+    showBullUpModal();
+  } else if (totalLegsInMatch === 0) {
+    currentMatchIndex++;
+    activeSide = "congress";
+  } else {
+    activeSide = winnerSide === "congress" ? "opponents" : "congress";
+  }
+
+  saveGameState();
+  updateUI();
+}
+
+/* ============================================================
+   EDIT SCORES & RESET
+   ============================================================ */
+function editScore(id) {
+  var item = turnHistory.find(function(h) { return h.id === id; });
+  if (!item) return;
+
+  var newScoreStr = prompt("Edit score entry:", item.score);
+  if (newScoreStr === null) return;
+  var newScore = parseInt(newScoreStr, 10);
+
+  if (isNaN(newScore) || newScore < 0 || newScore > 180) {
+    alert("Invalid score.");
+    return;
+  }
+
+  var diff = newScore - item.score;
+
+  if (item.side === "congress") {
+    if (congressScore - diff < 2 && congressScore - diff !== 0) {
+      alert("Invalid edit (causes bust).");
+      return;
+    }
+    congressScore -= diff;
+  } else {
+    if (opponentScore - diff < 2 && opponentScore - diff !== 0) {
+      alert("Invalid edit (causes bust).");
+      return;
+    }
+    opponentScore -= diff;
+  }
+
+  item.score = newScore;
+  item.bust = false;
+  saveGameState();
+  updateUI();
+}
+
+function resetMatchScores() {
+  if (confirm("Reset night's leg scores and current leg back to 501?")) {
+    congressLegs = 0;
+    opponentLegs = 0;
+    congressScore = 501;
+    opponentScore = 501;
+    activeSide = "congress";
+    currentMatchIndex = 0;
+    turnHistory = [];
+    currentLegStats = { totalScore: 0, dartsThrown: 0, hundreds: 0, oneForties: 0, oneEighties: 0, checkoutAttempts: 0 };
+    saveGameState();
+    updateUI();
+  }
+}
+
+/* ============================================================
+   BULL UP MODAL & UI RENDER
+   ============================================================ */
+function selectBullWinner(winner) {
+  activeSide = winner;
+  hideBullUpModal();
+  saveGameState();
+  updateUI();
+}
+
+function showBullUpModal() {
+  var modal = document.getElementById("bull-up-modal");
+  if (modal) modal.style.display = "flex";
+}
+
+function hideBullUpModal() {
+  var modal = document.getElementById("bull-up-modal");
+  if (modal) modal.style.display = "none";
+}
+
 function updateUI() {
-  document.getElementById("t0-name").innerText = team1.name;
-  document.getElementById("t1-name").innerText = team2.name;
+  // 1. Load Opponent Team Name
+  var opponentTeamName = localStorage.getItem("opponentTeamName") || "Opponent Team";
+  var oppTeamDisplay = document.getElementById("opponent-team-display") || document.getElementById("opponent-team-name");
+  if (oppTeamDisplay) {
+    oppTeamDisplay.innerText = opponentTeamName;
+  }
 
-  document.getElementById("t0-player-indicator").innerText = players[0].name;
-  document.getElementById("t1-player-indicator").innerText = players[1].name;
+  // 2. Refresh Schedule from localStorage
+  matchSchedule = JSON.parse(localStorage.getItem("matchSchedule") || "[]");
 
-  document.getElementById("t0-score").innerText = players[0].score;
-  document.getElementById("t1-score").innerText = players[1].score;
+  // 3. Legs & Current Scores
+  var cLegsEl = document.getElementById("congress-legs");
+  var oLegsEl = document.getElementById("opponent-legs");
+  var cScoreEl = document.getElementById("congress-score");
+  var oScoreEl = document.getElementById("opponent-score");
 
-  document.getElementById("t0-checkout").innerText = checkouts[players[0].score] || "";
-  document.getElementById("t1-checkout").innerText = checkouts[players[1].score] || "";
+  if (cLegsEl) cLegsEl.innerText = congressLegs;
+  if (oLegsEl) oLegsEl.innerText = opponentLegs;
 
-  document.getElementById("t0-legs").innerText = players[0].legs;
-  document.getElementById("t1-legs").innerText = players[1].legs;
+  if (cScoreEl) cScoreEl.innerText = congressScore > 0 ? congressScore : 501;
+  if (oScoreEl) oScoreEl.innerText = opponentScore > 0 ? opponentScore : 501;
 
-  document.getElementById("t0-evening-name").innerText = team1.name;
-  document.getElementById("t1-evening-name").innerText = team2.name;
+  // 4. Checkouts
+  var cCheckEl = document.getElementById("congress-checkout");
+  var oCheckEl = document.getElementById("opponent-checkout");
 
-  document.getElementById("t0-evening-score").innerText = team1.legs;
-  document.getElementById("t1-evening-score").innerText = team2.legs;
+  if (cCheckEl) cCheckEl.innerText = getCheckoutText(congressScore);
+  if (oCheckEl) oCheckEl.innerText = getCheckoutText(opponentScore);
 
-  document.getElementById("team-0-card").classList.toggle("active-thrower", activePlayer === 0);
-  document.getElementById("team-1-card").classList.toggle("active-thrower", activePlayer === 1);
+  // 5. Active Player Displays
+  var currentMatch = matchSchedule[currentMatchIndex] || {};
+  var playerDisplay = document.getElementById("current-player-display") || document.getElementById("home-player-name");
+  var oppDisplay = document.getElementById("current-opponent-display") || document.getElementById("away-player-name");
+
+  if (playerDisplay) playerDisplay.innerText = currentMatch.homePlayer || "Congress Player";
+  if (oppDisplay) oppDisplay.innerText = currentMatch.awayPlayer || opponentTeamName;
+
+  // 6. Active Turn Highlighting
+  var cCard = document.getElementById("congress-card");
+  var oCard = document.getElementById("opponent-card");
+
+  if (cCard && oCard) {
+    if (activeSide === "congress") {
+      cCard.classList.add("active-turn");
+      oCard.classList.remove("active-turn");
+    } else {
+      oCard.classList.add("active-turn");
+      cCard.classList.remove("active-turn");
+    }
+  }
+
+  // 7. Turn History List
+  var cHistoryEl = document.getElementById("congress-history");
+  var oHistoryEl = document.getElementById("opponent-history");
+
+  if (cHistoryEl && oHistoryEl) {
+    cHistoryEl.innerHTML = "";
+    oHistoryEl.innerHTML = "";
+
+    turnHistory.slice().reverse().forEach(function(item) {
+      var row = document.createElement("div");
+      row.className = "history-item";
+      var labelText = item.bust ? "BUST" : item.score;
+      row.innerHTML = '<span>' + labelText + '</span> <button onclick="editScore(' + item.id + ')">Edit</button>';
+
+      if (item.side === "congress") {
+        cHistoryEl.appendChild(row);
+      } else {
+        oHistoryEl.appendChild(row);
+      }
+    });
+  }
+
+  // 8. Schedule Render
+  var scheduleContainer = document.getElementById("schedule-list");
+  if (scheduleContainer) {
+    scheduleContainer.innerHTML = "";
+    matchSchedule.forEach(function(m, idx) {
+      var div = document.createElement("div");
+      div.className = "schedule-item" + (idx === currentMatchIndex ? " active-match" : "");
+      
+      var textSpan = document.createElement("span");
+      var matchTitle = m.title || m.type || ("Match " + (idx + 1));
+      var awayName = m.awayPlayer || opponentTeamName;
+      textSpan.innerText = (idx + 1) + ". " + matchTitle + ": " + (m.homePlayer || "TBD") + " vs " + awayName;
+      
+      div.appendChild(textSpan);
+      scheduleContainer.appendChild(div);
+    });
+  }
 }
 
-/* ------------------------------
-   RESET LEG
------------------------------- */
-function resetLeg() {
-  players[0].score = 501;
-  players[1].score = 501;
-
-  starterPlayer = starterPlayer === 0 ? 1 : 0;
-  activePlayer = starterPlayer;
-
+document.addEventListener("DOMContentLoaded", function() {
   updateUI();
-}
-
-/* ------------------------------
-   SAVE LEG TO FIRESTORE
------------------------------- */
-async function saveLegResult(winnerPlayer, winnerTeam) {
-  const record = {
-    team1Name: team1.name,
-    team2Name: team2.name,
-    p1Name: players[0].name,
-    p2Name: players[1].name,
-    winner: winnerPlayer,
-    teamWinner: winnerTeam,
-    p1Avg: parseFloat(calculateAvg(players[0])),
-    p2Avg: parseFloat(calculateAvg(players[1])),
-    p1Points: players[0].points,
-    p1Darts: players[0].darts,
-    p1TonPlus: players[0].tonPlus,
-    p1Tons180: players[0].tons180,
-    p1HighOut: players[0].highCheckout,
-    p2Points: players[1].points,
-    p2Darts: players[1].darts,
-    p2TonPlus: players[1].tonPlus,
-    p2Tons180: players[1].tons180,
-    p2HighOut: players[1].highCheckout,
-    createdAt: serverTimestamp()
-  };
-
-  await addDoc(matchesRef, record);
-}
-
-function calculateAvg(p) {
-  return p.darts > 0 ? ((p.points / p.darts) * 3).toFixed(2) : "0.00";
-}
-
-/* ------------------------------
-   DELETE MATCH
------------------------------- */
-window.deleteMatch = async function(id) {
-  if (confirm("Delete this match?")) {
-    await deleteDoc(doc(db, "matches", id));
-  }
-};
-
-/* ------------------------------
-   FIRESTORE REALTIME LISTENER
------------------------------- */
-const q = query(matchesRef, orderBy("createdAt", "desc"));
-
-onSnapshot(q, (snapshot) => {
-  const historyList = document.getElementById("history-list");
-  const teamStatsList = document.getElementById("team-stats-list");
-
-  historyList.innerHTML = "";
-  teamStatsList.innerHTML = "";
-
-  const teamPlayerStats = {};
-
-  snapshot.forEach((docSnapshot) => {
-    const data = docSnapshot.data();
-    const docId = docSnapshot.id;
-
-    // History Table
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><strong>${data.winner}</strong></td>
-      <td>${data.p1Name} vs ${data.p2Name}</td>
-      <td>${data.p1Avg ? data.p1Avg.toFixed(2) : "-"}</td>
-      <td><button class="btn-delete" onclick="deleteMatch('${docId}')">Delete</button></td>
-    `;
-    historyList.appendChild(tr);
-
-    // Congress B Stats
-    const isTeam1Congress = data.team1Name.toLowerCase() === MY_TEAM_NAME.toLowerCase();
-    const isTeam2Congress = data.team2Name.toLowerCase() === MY_TEAM_NAME.toLowerCase();
-
-    if (isTeam1Congress) {
-      trackPlayerStats(teamPlayerStats, data.p1Name, data.winner === data.p1Name, data.p1Points, data.p1Darts, data.p1TonPlus, data.p1Tons180, data.p1HighOut);
-    }
-
-    if (isTeam2Congress) {
-      trackPlayerStats(teamPlayerStats, data.p2Name, data.winner === data.p2Name, data.p2Points, data.p2Darts, data.p2TonPlus, data.p2Tons180, data.p2HighOut);
-    }
-  });
-
-  // Render Stats
-  Object.keys(teamPlayerStats).forEach(playerName => {
-    const stat = teamPlayerStats[playerName];
-    const avg = stat.totalDarts > 0 ? ((stat.totalPoints / stat.totalDarts) * 3).toFixed(2) : "0.00";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><strong>${playerName}</strong></td>
-      <td>${avg}</td>
-      <td>${stat.tonPlus}</td>
-      <td>${stat.tons180}</td>
-      <td>${stat.highOut}</td>
-      <td>${stat.matches}</td>
-      <td>${stat.legsWon} / ${stat.legsLost}</td>
-    `;
-    teamStatsList.appendChild(tr);
-  });
 });
-
-function trackPlayerStats(statsObj, playerName, isWin, points, darts, tonPlus, tons180, highOut) {
-  if (!statsObj[playerName]) {
-    statsObj[playerName] = {
-      matches: 0,
-      legsWon: 0,
-      legsLost: 0,
-      totalPoints: 0,
-      totalDarts: 0,
-      tonPlus: 0,
-      tons180: 0,
-      highOut: 0
-    };
-  }
-
-  const p = statsObj[playerName];
-  p.matches++;
-
-  if (isWin) p.legsWon++;
-  else p.legsLost++;
-
-  p.totalPoints += points || 0;
-  p.totalDarts += darts || 0;
-  p.tonPlus += tonPlus || 0;
-  p.tons180 += tons180 || 0;
-
-  if (highOut > p.highOut) p.highOut = highOut;
-}
-
-// Initial UI
-updateUI();
